@@ -10,14 +10,10 @@ import (
 
 var Cron = cron.New()
 
-type cronEntities struct {
-	id       int
-	schedule string
-}
-
 func init() {
 	log.SetLevel(log.InfoLevel)
 	log.SetFormatter(&log.TextFormatter{FullTimestamp: true})
+	Cron.AddFunc("*/1 * * * *", func() { log.Info("[Job 1]Every minute job\n") })
 }
 
 func main() {
@@ -26,8 +22,6 @@ func main() {
 	v1 := r.Group("/v1")
 	{
 		v1.GET("/health", health)
-		v1.POST("/signup", signup)
-		v1.POST("/login", login)
 		v1.POST("/cron/start", cronStart)
 		v1.GET("/cron/check", checkCron)
 		v1.GET("/cron/stop", cronStop)
@@ -41,41 +35,23 @@ func health(c *gin.Context) {
 	})
 }
 
-func signup(c *gin.Context) {
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "signed up",
-	})
-}
-
-func login(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "logged in",
-	})
-}
-
 func cronStart(c *gin.Context) {
 	log.Info("Create new cron")
-
-	Cron.AddFunc("*/1 * * * *", func() { log.Info("[Job 1]Every minute job\n") })
 
 	// Start cron with one scheduled job
 	log.Info("Start cron")
 	Cron.Start()
 	printCronEntries(Cron.Entries())
 	// time.Sleep(2 * time.Minute)
+	println("cron entity :", Cron.Entries())
 
 	c.JSON(http.StatusOK, gin.H{"message": "This agent start to work..."})
-
 }
 
 func checkCron(c *gin.Context) {
 	log.Info("Check cron")
-
+	// println(Cron.Entry(1))
 	c.JSON(http.StatusOK, gin.H{"message": "Check this agent work..."})
-	println(Cron.Entries())
-	// println(Cron.Parse())
-	// var Cron = cron.New()
-	// inspect(Cron.Entries())
 }
 
 func cronStop(c *gin.Context) {
@@ -83,8 +59,8 @@ func cronStop(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Stop this agent work..."})
 
-	// var Cron = cron.New()
 	Cron.Stop()
+	// Cron.Remove(1)
 }
 
 func printCronEntries(cronEntries []cron.Entry) {
