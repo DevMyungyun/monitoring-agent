@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron/v3"
 	log "github.com/sirupsen/logrus"
+	"monitoring-agent/command"
 )
 
 var Cron = cron.New()
@@ -45,6 +46,7 @@ func cronStart(c *gin.Context) {
 	// time.Sleep(2 * time.Minute)
 	println("cron entity :", Cron.Entries())
 
+	command.CheckDisk()
 	c.JSON(http.StatusOK, gin.H{"message": "This agent start to work..."})
 }
 
