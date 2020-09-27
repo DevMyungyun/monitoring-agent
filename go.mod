@@ -8,6 +8,9 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/thoas/go-funk v0.7.0
 	monitoring-agent/command v0.0.0
+
 )
 
-replace monitoring-agent/command v0.0.0 => ./command
+replace (
+	monitoring-agent/command v0.0.0 => ./command
+)
