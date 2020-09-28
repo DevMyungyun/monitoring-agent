@@ -61,27 +61,49 @@ func GetResource(os string) interface{} {
 		fmt.Println("MAC operating system")
 	case "linux":
 		fmt.Println("Linux")
-		cmd.cpu = append(cmd.cpu, "top")
-		cmd.cpu = append(cmd.cpu, "-b -n1 | grep -Po '[0-9.]+ id' | awk '{print 100-$1}'")
+		cmd.cpu = append(cmd.cpu, "bash")
+		cmd.cpu = append(cmd.cpu, "-c")
+		cmd.cpu = append(cmd.cpu, "top -b -n1 | grep -Po '[0-9.]+ id' | awk '{print 100-$1}'")
 		cmd.mem = append(cmd.mem, "free")
 		cmd.mem = append(cmd.mem, "-h")
 		cmd.disk = append(cmd.disk, "df")
 		cmd.disk = append(cmd.disk, "-h")
 
-		cpuOut = execCmd(cmd.cpu, os)
+		cpuOut, err := exec.Command(cmd.cpu[0],cmd.cpu[1],cmd.cpu[3]).Output()
+		if err != nil {
+			log.Fatal(err)
+		}
 		memOut = execCmd(cmd.mem, os)
 		diskOut = execCmd(cmd.disk, os)
 
-		// cpuArrOut := strings.Split(string(cpuOut), "\n")
 		memArrOut := strings.Split(string(memOut), "\n")
 		diskArrOut := strings.Split(string(diskOut), "\n")
+		//cpu
+		cpuMap := make(map[string]string)
+		cpuMap["0"] = string(cpuOut)
+		cpuResult = cpuMap
+		//memory
+		memMatrix := getMatrix(memArrOut)
+		memMap := make(map[string]string)
+		for i, _ := range memMatrix[0] {
+            memMap[memMatrix[0][i]] = memMatrix[1][i+1]
+		}
+		//disk
+		diskMatrix := getMatrix(diskArrOut)
+		tmpDiskMap := make(map[string]string)
+        diskMap := make(map[string]interface{})
+        for i:=1; i<len(diskMatrix[1]); i++ {
+			for j, _ := range diskMatrix[i] {
+					tmpDiskMap[diskMatrix[0][j]] = diskMatrix[i][j]
+					fmt.Println(">> ",diskMatrix[0][j]," / ",diskMatrix[i][j])
+			}
+			index := i-1
+			diskMap[strconv.Itoa(index)]=tmpDiskMap
+        }
 
-		memResult = generateMatrix(memArrOut)
-		diskResult = generateMatrix(diskArrOut)
-
-		// cpuResult =
-		memResult = generateMatrix(memArrOut)
-		diskResult = generateMatrix(diskArrOut)
+		cpuResult = cpuMap
+		memResult = memMap
+		diskResult = diskMap
 	default:
 		fmt.Println("This OS is not supported : ", os)
 	}
@@ -98,20 +120,10 @@ func GetResource(os string) interface{} {
 	// JSON 바이트를 문자열로 변경
 	jsonString := string(jsonBytes)
 
-
-	// matrix := generateMatrix(arrOut)
-	// for _, row := range matrix {
-	// 	for i, element := range row {
-	// 		if i == 3 {
-	// 			fmt.Print(element, " ")
-	// 		}
-	// 	}
-	// 	fmt.Println()
-	// }
 	return jsonString
 }
 
-func generateMatrix(out []string) [][]string {
+func getMatrix(out []string) [][]string {
 	matrix := make([][]string, len(out))
 	for i := 0; i < len(out); i++ {
 		// fmt.Println("tmp>>>", tmpArr)
