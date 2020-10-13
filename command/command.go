@@ -1,8 +1,8 @@
 package command
 
 import (
-	// "reflect"
-	"encoding/json"
+	"reflect"
+	// "encoding/json"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -42,7 +42,7 @@ func GetResource(os string) interface{} {
 		cmd.cpu = append(cmd.cpu, "Powershell.exe")
 		cmd.cpu = append(cmd.cpu, "Get-WmiObject Win32_Processor | Measure-Object -Property LoadPercentage -Average")
 		cmd.mem = append(cmd.mem, "Powershell.exe")
-		cmd.mem = append(cmd.mem, "Get-WmiObject win32_OperatingSystem |%{\"Total Physical Memory: {0}KB`nFree Physical Memory : {1}KB`nTotal Virtual Memory : {2}KB`nFree Virtual Memory  : {3}KB\" -f $_.totalvisiblememorysize, $_.freephysicalmemory, $_.totalvirtualmemorysize, $_.freevirtualmemory}")
+		cmd.mem = append(cmd.mem, "Get-WmiObject win32_OperatingSystem |%{\"TotalPhysicalMemory: {0}KB`nFreePhysicalMemory : {1}KB`nTotalVirtualMemory : {2}KB`nFreeVirtualMemory  : {3}KB\" -f $_.totalvisiblememorysize, $_.freephysicalmemory, $_.totalvirtualmemorysize, $_.freevirtualmemory}")
 		cmd.disk = append(cmd.disk, "Powershell.exe")
 		cmd.disk = append(cmd.disk, "get-WmiObject win32_logicaldisk")
 
@@ -55,8 +55,11 @@ func GetResource(os string) interface{} {
 		diskArrOut := strings.Split(string(diskOut), "\r\n")
 
 		cpuResult = getMapList(cpuArrOut)
+		fmt.Println("cpu###", cpuResult)
 		memResult = getMapList(memArrOut)
+		fmt.Println("mem###", memResult)
 		diskResult = getMapList(diskArrOut)
+		fmt.Println("disk###", diskResult)
 	case "darwin":
 		fmt.Println("MAC operating system")
 	case "linux":
@@ -100,7 +103,6 @@ func GetResource(os string) interface{} {
 			index := i-1
 			diskMap[strconv.Itoa(index)]=tmpDiskMap
         }
-
 		cpuResult = cpuMap
 		memResult = memMap
 		diskResult = diskMap
@@ -113,14 +115,7 @@ func GetResource(os string) interface{} {
 	m["mem"] = memResult
 	m["disk"] = diskResult
 
-	jsonBytes, err := json.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	// JSON 바이트를 문자열로 변경
-	jsonString := string(jsonBytes)
-
-	return jsonString
+	return m
 }
 
 func getMatrix(out []string) [][]string {
@@ -142,14 +137,14 @@ func getMatrix(out []string) [][]string {
 
 func getMapList(out []string) interface{} {
 	m := make(map[string]string)
-
-	m2 := make(map[string]interface{})
-	for _, el := range out {
-		if el == "" {
-			m2[strconv.Itoa(len(m2)+1)] = m
+	var tmpArr []interface{}
+	for _, val := range out {
+		if val == "" {
+			tmpArr = append(tmpArr, m)
+			// m2[strconv.Itoa(len(m2)+1)] = m
 			m = make(map[string]string)
 		} else {
-			tmpEl := strings.Split(el, ":")
+			tmpEl := strings.Split(val, ":")
 			tmp1 := strings.Trim(tmpEl[0], " ")
 			tmp2 := strings.Trim(tmpEl[1], " ")
 			m[tmp1] = string(tmp2)
@@ -158,7 +153,13 @@ func getMapList(out []string) interface{} {
 	// for key, val := range m2 {
 	// 	fmt.Println(key, val)
 	// }
-	return m2
+	var resultArr []interface{}
+	for _, val := range tmpArr {
+		if reflect.ValueOf(val).Len() != 0 {
+			resultArr = append(resultArr, val)
+		} 
+	}
+	return resultArr
 }
 
 func execCmd(cmd []string, os string) []byte {
