@@ -32,7 +32,7 @@ func TokenValidCheck(headers *http.Request) interface{}{
 	case "linux":
 		path = "/tmp/agent-config"
 	default:
-		fmt.Println("This OS is not supported : ", checkOS)
+		log.Info("This OS is not supported : ", checkOS)
 	}
 
     data, err := ioutil.ReadFile(path)
