@@ -10,6 +10,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	
+	"monitoring-agent/command"
 	encryption "monitoring-agent/encryption"
 	log "github.com/sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
@@ -21,7 +22,20 @@ func TokenValidCheck(headers *http.Request) interface{}{
 	// log.Info("jwt token : ",token)
 	// println(Cron.Entry(1))s
 
-    data, err := ioutil.ReadFile("C:\\temp\\agent-config")
+	checkOS := command.DetectOS()
+	path := ""
+	switch checkOS {
+	case "windows":
+		path = "C:\\temp\\agent-config"
+	case "darwin":
+		path = "/tmp/agent-config"
+	case "linux":
+		path = "/tmp/agent-config"
+	default:
+		fmt.Println("This OS is not supported : ", checkOS)
+	}
+
+    data, err := ioutil.ReadFile(path)
     if err != nil {
         panic(err)
     }

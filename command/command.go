@@ -42,7 +42,7 @@ func GetResource(os string) interface{} {
 		cmd.cpu = append(cmd.cpu, "Powershell.exe")
 		cmd.cpu = append(cmd.cpu, "Get-WmiObject Win32_Processor | Measure-Object -Property LoadPercentage -Average")
 		cmd.mem = append(cmd.mem, "Powershell.exe")
-		cmd.mem = append(cmd.mem, "Get-WmiObject win32_OperatingSystem |%{\"TotalPhysicalMemory: {0}KB`nFreePhysicalMemory : {1}KB`nTotalVirtualMemory : {2}KB`nFreeVirtualMemory  : {3}KB\" -f $_.totalvisiblememorysize, $_.freephysicalmemory, $_.totalvirtualmemorysize, $_.freevirtualmemory}")
+		cmd.mem = append(cmd.mem, "Get-WmiObject win32_OperatingSystem |%{\"TotalPhysicalMemory: {0}`nFreePhysicalMemory : {1}`nTotalVirtualMemory : {2}`nFreeVirtualMemory  : {3}\" -f $_.totalvisiblememorysize, $_.freephysicalmemory, $_.totalvirtualmemorysize, $_.freevirtualmemory}")
 		cmd.disk = append(cmd.disk, "Powershell.exe")
 		cmd.disk = append(cmd.disk, "get-WmiObject win32_logicaldisk")
 

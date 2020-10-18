@@ -31,7 +31,7 @@ func init() {
 	
 	cron.WithSeconds()
 	// Cron.AddFunc("*/1 * * * *", func() {
-	Cron.AddFunc("@every 0h0m15s", func() {
+	Cron.AddFunc("@every 0h0m30s", func() {
 		log.Info("[Job 1]Every minute job\n")
 		resource := command.GetResource(os)
 		// log.Info(">>>>", reflect.TypeOf(resource))
@@ -118,9 +118,6 @@ func handshake(c *gin.Context) {
 
 	ciphertext := encryption.Encrypt(block, []byte(bodyBytes))
 	fmt.Printf("%x\n", ciphertext)
-
-	// plaintext := encryption.Decrypt(block, ciphertext) // AES 알고리즘 암호문을 평문으로 복호화
-	// fmt.Println(string(plaintext))
 
     err = ioutil.WriteFile(path, ciphertext, 0644)
     if err != nil {
