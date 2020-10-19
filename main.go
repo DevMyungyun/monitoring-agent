@@ -37,7 +37,41 @@ func init() {
 		// log.Info(">>>>", reflect.TypeOf(resource))
 		// log.Info(">>>>", resource)
 		
-		res := httpReq("POST", "http://localhost:3333/agent/v1/resource/receive", nil, resource)
+		checkOS := command.DetectOS()
+		filePath := ""
+		urlPath := ""
+		switch checkOS {
+		case "windows":
+			filePath = "C:\\temp\\agent-config"
+			urlPath = "/agent/v1/windows/resource/receive"
+		case "darwin":
+			filePath = "/tmp/agent-config"
+			urlPath = "/agent/v1/macos/resource/receive"
+		case "linux":
+			filePath = "/tmp/agent-config"
+			urlPath = "/agent/v1/linux/resource/receive"
+		default:
+			log.Info("This OS is not supported : ", checkOS)
+		}
+
+		data, err := ioutil.ReadFile(filePath)
+		if err != nil {
+			panic(err)
+		}
+
+		key := "16byteSecret!!!!" // must be 16 byte
+		config := encryption.GetDecryptData(key, data)
+		ad := config.(map[string]string)
+		// Declare Header
+		header := make(map[string]string)
+		header["Content-Type"] = "application/json"
+		header["Authorization"] = "bearer "+ ad["JWT"]
+		// Declare Query
+		query := make(map[string]string)
+		query["name"] = ad["NAME"]
+
+		url := ad["MAIN_SERVER_ADDRESS"]+urlPath
+		res := httpReq("POST", url, header, query, resource)
 		log.Info("response : ", res)
 	})
 }
@@ -76,7 +110,10 @@ func handshake(c *gin.Context) {
 	
 	type agentData struct{
 		ID string
+		NAME string
 		JWT string
+		MAIN_SERVER_ADDRESS string
+		OS string
 	}
 	var ad agentData
 	trimStrBody := strings.Replace(string(reqBody), " ", "", -1)
@@ -104,7 +141,9 @@ func handshake(c *gin.Context) {
 	}
 	config := make(map[string]string)
 	config["ID"] = ad.ID
+	config["NAME"] = ad.NAME
 	config["JWT"] = ad.JWT
+	config["MAIN_SERVER_ADDRESS"] = ad.MAIN_SERVER_ADDRESS
 	config["CREATE_AT"] = time.Now().String()
 
 	bodyBytes, _ := json.Marshal(config)
@@ -152,9 +191,7 @@ func checkCron(c *gin.Context) {
 
 func cronStop(c *gin.Context) {
 	log.Info("Stop cron")
-
 	c.JSON(http.StatusOK, gin.H{"message": "Stop this agent work..."})
-
 	Cron.Stop()
 	// Cron.Remove(1)
 }
@@ -169,36 +206,40 @@ func printCronEntries(cronEntries []cron.Entry) {
 	log.Infof("Cron Info: %+v\n", cronEntries)
 }
 
-func httpReq(method string, url string, header []string, body interface{}) string {
+func httpReq(method string, url string, header interface{}, query interface{}, body interface{}) string {
 	bodyBytes, _ := json.Marshal(body)
 	bodyBuffer := bytes.NewBuffer(bodyBytes)
 	// log.Info("### ", bodyBytes)
 	// log.Info("### ", bodyBuffer)
 	// Request 객체 생성
 	
-	req, err := http.NewRequest("POST",url, bodyBuffer)
+	req, err := http.NewRequest(method, url, bodyBuffer)
 	if err !=nil {
 		panic(err)
 	}
 
 	q := req.URL.Query()
-    q.Add("name", "777")
+	if query != nil {
+		queries := query.(map[string]string)
+		for key, val := range queries {
+			q.Add(key, val)
+		}
+	}
 	req.URL.RawQuery = q.Encode()
 
-	req.Header.Add("Authorization", "bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI3NzciLCJpZCI6ImM2ZDEyMzliLTk4ZTItNDYxYy1hOWQwLTNhNzRmYzhjMzk0OSIsImlhdCI6MTYwMjQ4OTQ4NywiZXhwIjoxNjM0MDI1NDg3fQ.97t7_MWb5ebW_xjIXlDNz28GPQzgxFyG6g7MR2mY5KQhD2C1HHDW6z0BPSkwXQjGqjNy-qb4V6cF_KdSl9WJmA")
-	req.Header.Add("Content-Type", "application/json")
+	if header != nil {
+		headers := header.(map[string]string)
+		for key, val := range headers {
+			req.Header.Add(key, val)
+		}
+	}
 	
-
 	// req, err := http.NewRequest(method, url, bodyBuffer)
 	// if err != nil {
 	// 	panic(err)
 	// }
 	//필요시 헤더 추가 가능
-	// if header != nil {
-	// 	for i, v := range header {
-	// 		req.Header.Add(string(v[i/2]), string(v[i/2+1]))
-	// 	}
-	// }
+	
 	// Client객체에서 Request 실행
 	client := &http.Client{}
 	resp, err := client.Do(req)

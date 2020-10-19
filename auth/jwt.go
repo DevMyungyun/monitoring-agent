@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strings"
 	"io/ioutil"
-	"crypto/aes"
-	"bytes"
-	"encoding/json"
+	// "crypto/aes"
+	// "bytes"
+	// "encoding/json"
 	"crypto/sha512"
 	"encoding/hex"
 	
@@ -16,7 +16,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-func TokenValidCheck(headers *http.Request) interface{}{
+func TokenValidCheck(headers *http.Request) (interface{}){
 	log.Info("=====token check=============")
 	token := ExtractToken(headers)
 	// log.Info("jwt token : ",token)
@@ -41,40 +41,43 @@ func TokenValidCheck(headers *http.Request) interface{}{
     }
 
 	key := "16byteSecret!!!!" // must be 16 byte
-	block, err := aes.NewCipher([]byte(key))
-	if err != nil {	
-		log.Info(err)
-	}
-	// AES 알고리즘 암호문을 평문으로 복호화
-	plaintext := encryption.Decrypt(block, data) 
-	type agentData struct{
-		ID string
-		JWT string
-	}
-	var ad agentData
+	config := encryption.GetDecryptData(key, data)
+	ad := config.(map[string]string)
+	// block, err := aes.NewCipher([]byte(key))
+	// if err != nil {	
+	// 	log.Info(err)
+	// }
+	// // Decrypt with AES algorithm
+	// plaintext := encryption.Decrypt(block, data) 
+	// type agentData struct{
+	// 	ID string
+	// 	NAME string
+	// 	JWT string
+	// 	MAIN_SERVER_ADDRESS string
+	// }
+	// var ad agentData
 
-	editedPlaintext := bytes.Trim(plaintext, "\x00")
+	// editedPlaintext := bytes.Trim(plaintext, "\x00")
 
-	error := json.Unmarshal(editedPlaintext, &ad)
-	if error != nil {
-		defer func() { 
-			s := recover()
-			log.Info(s) 
-			log.Info(err)
-		}()
-        panic(error)
-	}
-
-	aStringToHash := []byte(ad.ID)
+	// error := json.Unmarshal([]byte(config), ad)
+	// if error != nil {
+	// 	defer func() { 
+	// 		s := recover()
+	// 		log.Info(s) 
+	// 		log.Info(err)
+	// 	}()
+    //     panic(error)
+	// }
+	
+	aStringToHash := []byte(ad["ID"])
 	sha512Bytes := sha512.Sum512(aStringToHash)
 	secret := hex.EncodeToString(sha512Bytes[:])
-	// log.Info("SHA512 String is ", hex.EncodeToString(sha512Bytes[:]))
+	log.Info("SHA512 String is ", hex.EncodeToString(sha512Bytes[:]))
 
 	claim, check := VerifyToken(token, secret)
 	if check != true {
 		log.Info(check)
 	}
-	log.Info("result : ",claim)
 	return claim
 }
 

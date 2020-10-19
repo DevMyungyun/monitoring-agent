@@ -4,7 +4,10 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"bytes"
+	"encoding/json"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io"
 )
 
@@ -36,4 +39,42 @@ func Decrypt(b cipher.Block, ciphertext []byte) []byte {
 	mode := cipher.NewCBCDecrypter(b, iv)                                                   
 	mode.CryptBlocks(plaintext, ciphertext)   
 	return plaintext
+}
+
+func GetDecryptData(secretKey string, data []byte) interface{} {
+	key := secretKey // must be 16 byte
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {	
+		log.Info(err)
+	}
+	// Decrypt with AES algorithm
+	plaintext := Decrypt(block, data) 
+	type agentData struct{
+		ID string
+		NAME string
+		JWT string
+		MAIN_SERVER_ADDRESS string
+	}
+	var ad agentData
+
+	editedPlaintext := bytes.Trim(plaintext, "\x00")
+
+	error := json.Unmarshal(editedPlaintext, &ad)
+	if error != nil {
+		defer func() { 
+			s := recover()
+			log.Info(s) 
+			log.Info(err)
+		}()
+        panic(error)
+	}
+
+	config := make(map[string]string)
+	config["ID"] = ad.ID
+	config["NAME"] = ad.NAME
+	config["JWT"] = ad.JWT
+	config["MAIN_SERVER_ADDRESS"] = ad.MAIN_SERVER_ADDRESS
+	log.Info("result : ",config)
+
+	return config
 }

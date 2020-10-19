@@ -68,11 +68,11 @@ func GetResource(os string) interface{} {
 		cmd.cpu = append(cmd.cpu, "-c")
 		cmd.cpu = append(cmd.cpu, "top -b -n1 | grep -Po '[0-9.]+ id' | awk '{print 100-$1}'")
 		cmd.mem = append(cmd.mem, "free")
-		cmd.mem = append(cmd.mem, "-h")
+		// cmd.mem = append(cmd.mem, "-h")
 		cmd.disk = append(cmd.disk, "df")
 		cmd.disk = append(cmd.disk, "-h")
 
-		cpuOut, err := exec.Command(cmd.cpu[0],cmd.cpu[1],cmd.cpu[3]).Output()
+		cpuOut, err := exec.Command(cmd.cpu[0],cmd.cpu[1],cmd.cpu[2]).Output()
 		if err != nil {
 			log.Fatal(err)
 		}
