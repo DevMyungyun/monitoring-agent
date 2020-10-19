@@ -5,7 +5,7 @@ import (
 	// "encoding/json"
 	"fmt"
 	"os/exec"
-	"strconv"
+	//"strconv"
 	"strings"
 	"runtime"
 	log "github.com/sirupsen/logrus"
@@ -70,7 +70,7 @@ func GetResource(os string) interface{} {
 		cmd.mem = append(cmd.mem, "free")
 		cmd.mem = append(cmd.mem, "-k")
 		cmd.disk = append(cmd.disk, "df")
-		cmd.disk = append(cmd.disk, "-h")
+		cmd.disk = append(cmd.disk, "-k")
 
 		cpuOut, err := exec.Command(cmd.cpu[0],cmd.cpu[1],cmd.cpu[2]).Output()
 		if err != nil {
@@ -82,30 +82,36 @@ func GetResource(os string) interface{} {
 		memArrOut := strings.Split(string(memOut), "\n")
 		diskArrOut := strings.Split(string(diskOut), "\n")
 		//cpu
-		cpuMap := make(map[string]string)
-		cpuMap["0"] = string(cpuOut)
-		cpuResult = cpuMap
+		// cpuMap := make(map[string]string)
+		// cpuMap["0"] = string(cpuOut)
+		var cpuArr []string
+		cpuArr = append(cpuArr, string(cpuOut))
+		cpuResult = cpuArr
 		//memory
 		memMatrix := getMatrix(memArrOut)
+		fmt.Println("#### Matrix ",memMatrix)
 		memMap := make(map[string]string)
 		for i, _ := range memMatrix[0] {
             memMap[memMatrix[0][i]] = memMatrix[1][i+1]
+fmt.Println(">>mem ",memMatrix[0][i]," / ",memMatrix[1][i+1])
 		}
 		//disk
 		diskMatrix := getMatrix(diskArrOut)
 		tmpDiskMap := make(map[string]string)
-        diskMap := make(map[string]interface{})
+   //     diskMap := make(map[string]interface{})
+	var diskArr []interface{}
         for i:=1; i<len(diskMatrix[1]); i++ {
 			for j, _ := range diskMatrix[i] {
 					tmpDiskMap[diskMatrix[0][j]] = diskMatrix[i][j]
-					fmt.Println(">> ",diskMatrix[0][j]," / ",diskMatrix[i][j])
+					fmt.Println(">> disk ",diskMatrix[0][j]," / ",diskMatrix[i][j])
 			}
-			index := i-1
-			diskMap[strconv.Itoa(index)]=tmpDiskMap
+		//	index := i-1
+		//	diskMap[strconv.Itoa(index)]=tmpDiskMap
+		diskArr = append(diskArr, tmpDiskMap)
         }
-		cpuResult = cpuMap
+		cpuResult = cpuArr
 		memResult = memMap
-		diskResult = diskMap
+		diskResult = diskArr
 	default:
 		fmt.Println("This OS is not supported : ", os)
 	}
@@ -114,7 +120,7 @@ func GetResource(os string) interface{} {
 	m["cpu"] = cpuResult
 	m["mem"] = memResult
 	m["disk"] = diskResult
-
+	fmt.Println("#### map : ", m)
 	return m
 }
 
