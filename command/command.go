@@ -100,7 +100,7 @@ func GetResource(os string) interface{} {
 					tmpDiskMap[diskMatrix[0][j]] = diskMatrix[i][j]
 					fmt.Println(">> disk ",diskMatrix[0][j]," / ",diskMatrix[i][j])
 			}
-		diskArr = append(diskArr, tmpDiskMap)
+		diskArr = append(diskArr, &tmpDiskMap)
         }
 		cpuResult = cpuArr
 		memResult = memMap
