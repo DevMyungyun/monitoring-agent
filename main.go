@@ -102,6 +102,7 @@ func main() {
 func health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "ok",
+		"code": 200,
 	})
 }
 
@@ -211,8 +212,8 @@ func httpReq(method string, url string, header interface{}, query interface{}, b
 	bodyBuffer := bytes.NewBuffer(bodyBytes)
 	// log.Info("### ", bodyBytes)
 	// log.Info("### ", bodyBuffer)
-	// Request 객체 생성
 	
+	// Generate Request Object
 	req, err := http.NewRequest(method, url, bodyBuffer)
 	if err !=nil {
 		panic(err)
@@ -234,13 +235,7 @@ func httpReq(method string, url string, header interface{}, query interface{}, b
 		}
 	}
 	
-	// req, err := http.NewRequest(method, url, bodyBuffer)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	//필요시 헤더 추가 가능
-	
-	// Client객체에서 Request 실행
+	// Execute Request by Client Object
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -248,9 +243,9 @@ func httpReq(method string, url string, header interface{}, query interface{}, b
 	}
 	defer resp.Body.Close()
 
-	// 결과 출력
+	// Output result
 	bytes, _ := ioutil.ReadAll(resp.Body)
-	str := string(bytes) //바이트를 문자열로
+	str := string(bytes)
 	fmt.Println(str)
 
 	return str

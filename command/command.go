@@ -92,10 +92,10 @@ func GetResource(os string) interface{} {
 		}
 		//disk
 		diskMatrix := getMatrix(diskArrOut)
-		tmpDiskMap := make(map[string]string)
 
 		var diskArr []interface{}
         for i:=1; i<len(diskMatrix[1]); i++ {
+			tmpDiskMap := make(map[string]string)
 			for j, _ := range diskMatrix[i] {
 					tmpDiskMap[diskMatrix[0][j]] = diskMatrix[i][j]
 					fmt.Println(">> disk ",diskMatrix[0][j]," / ",diskMatrix[i][j])
