@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"bytes"
+	// "bytes"
 	"encoding/json"
 	"crypto/aes"
 	"strings"
@@ -15,6 +15,7 @@ import (
 	"monitoring-agent/command"
 	encryption "monitoring-agent/encryption"
 	jwt "monitoring-agent/auth"
+	httpReqRes "monitoring-agent/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron/v3"
@@ -71,7 +72,7 @@ func init() {
 		query["name"] = ad["NAME"]
 
 		url := ad["MAIN_SERVER_ADDRESS"]+urlPath
-		res := httpReq("POST", url, header, query, resource)
+		res := httpReqRes.HttpReq("POST", url, header, query, resource)
 		log.Info("response : ", res)
 	})
 }
@@ -207,46 +208,46 @@ func printCronEntries(cronEntries []cron.Entry) {
 	log.Infof("Cron Info: %+v\n", cronEntries)
 }
 
-func httpReq(method string, url string, header interface{}, query interface{}, body interface{}) string {
-	bodyBytes, _ := json.Marshal(body)
-	bodyBuffer := bytes.NewBuffer(bodyBytes)
-	// log.Info("### ", bodyBytes)
-	// log.Info("### ", bodyBuffer)
+// func httpReq(method string, url string, header interface{}, query interface{}, body interface{}) string {
+// 	bodyBytes, _ := json.Marshal(body)
+// 	bodyBuffer := bytes.NewBuffer(bodyBytes)
+// 	// log.Info("### ", bodyBytes)
+// 	// log.Info("### ", bodyBuffer)
 	
-	// Generate Request Object
-	req, err := http.NewRequest(method, url, bodyBuffer)
-	if err !=nil {
-		panic(err)
-	}
+// 	// Generate Request Object
+// 	req, err := http.NewRequest(method, url, bodyBuffer)
+// 	if err !=nil {
+// 		panic(err)
+// 	}
 
-	q := req.URL.Query()
-	if query != nil {
-		queries := query.(map[string]string)
-		for key, val := range queries {
-			q.Add(key, val)
-		}
-	}
-	req.URL.RawQuery = q.Encode()
+// 	q := req.URL.Query()
+// 	if query != nil {
+// 		queries := query.(map[string]string)
+// 		for key, val := range queries {
+// 			q.Add(key, val)
+// 		}
+// 	}
+// 	req.URL.RawQuery = q.Encode()
 
-	if header != nil {
-		headers := header.(map[string]string)
-		for key, val := range headers {
-			req.Header.Add(key, val)
-		}
-	}
+// 	if header != nil {
+// 		headers := header.(map[string]string)
+// 		for key, val := range headers {
+// 			req.Header.Add(key, val)
+// 		}
+// 	}
 	
-	// Execute Request by Client Object
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
+// 	// Execute Request by Client Object
+// 	client := &http.Client{}
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	defer resp.Body.Close()
 
-	// Output result
-	bytes, _ := ioutil.ReadAll(resp.Body)
-	str := string(bytes)
-	fmt.Println(str)
+// 	// Output result
+// 	bytes, _ := ioutil.ReadAll(resp.Body)
+// 	str := string(bytes) 
+// 	fmt.Println(str)
 
-	return str
-}
+// 	return str
+// }

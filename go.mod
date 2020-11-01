@@ -11,6 +11,7 @@ require (
 	monitoring-agent/auth v0.0.0
 	monitoring-agent/command v0.0.0
 	monitoring-agent/encryption v0.0.0
+	monitoring-agent/http v0.0.0
 
 )
 
@@ -18,4 +19,5 @@ replace (
 	monitoring-agent/auth v0.0.0 => ./auth
 	monitoring-agent/command v0.0.0 => ./command
 	monitoring-agent/encryption v0.0.0 => ./encryption
+	monitoring-agent/http v0.0.0 => ./http
 )

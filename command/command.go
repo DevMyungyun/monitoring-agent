@@ -3,7 +3,6 @@ package command
 import (
 	"reflect"
 	// "encoding/json"
-	"fmt"
 	"os/exec"
 	"strings"
 	"runtime"
@@ -24,7 +23,7 @@ func DetectOS() string {
 
 func GetResource(os string) interface{} {
 	path, _ := exec.LookPath("go")
-	fmt.Println(path)
+	log.Info(path)
 
 	var cmd = command{}
 
@@ -37,7 +36,7 @@ func GetResource(os string) interface{} {
 	var diskResult interface{}
 	switch os {
 	case "windows":
-		fmt.Println("Windows")
+		// fmt.Println("Windows")
 		cmd.cpu = append(cmd.cpu, "Powershell.exe")
 		cmd.cpu = append(cmd.cpu, "Get-WmiObject Win32_Processor | Measure-Object -Property LoadPercentage -Average")
 		cmd.mem = append(cmd.mem, "Powershell.exe")
@@ -54,15 +53,12 @@ func GetResource(os string) interface{} {
 		diskArrOut := strings.Split(string(diskOut), "\r\n")
 
 		cpuResult = getMapList(cpuArrOut)
-		fmt.Println("cpu###", cpuResult)
 		memResult = getMapList(memArrOut)
-		fmt.Println("mem###", memResult)
 		diskResult = getMapList(diskArrOut)
-		fmt.Println("disk###", diskResult)
 	case "darwin":
-		fmt.Println("MAC operating system")
+		log.Info("MAC operating system")
 	case "linux":
-		fmt.Println("Linux")
+		// fmt.Println("Linux")
 		cmd.cpu = append(cmd.cpu, "bash")
 		cmd.cpu = append(cmd.cpu, "-c")
 		cmd.cpu = append(cmd.cpu, "top -b -n1 | grep -Po '[0-9.]+ id' | awk '{print 100-$1}'")
@@ -98,7 +94,7 @@ func GetResource(os string) interface{} {
 			tmpDiskMap := make(map[string]string)
 			for j, _ := range diskMatrix[i] {
 					tmpDiskMap[diskMatrix[0][j]] = diskMatrix[i][j]
-					fmt.Println(">> disk ",diskMatrix[0][j]," / ",diskMatrix[i][j])
+					// fmt.Println(">> disk ",diskMatrix[0][j]," / ",diskMatrix[i][j])
 			}
 		diskArr = append(diskArr, &tmpDiskMap)
         }
@@ -106,14 +102,14 @@ func GetResource(os string) interface{} {
 		memResult = memMap
 		diskResult = diskArr
 	default:
-		fmt.Println("This OS is not supported : ", os)
+		log.Info("This OS is not supported : ", os)
 	}
 
 	m := make(map[string]interface{}) 
 	m["cpu"] = cpuResult
 	m["mem"] = memResult
 	m["disk"] = diskResult
-	fmt.Println("#### map : ", m)
+	// fmt.Println("#### map : ", m)
 	return m
 }
 
