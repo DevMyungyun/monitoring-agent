@@ -15,66 +15,21 @@ import (
 	"monitoring-agent/command"
 	encryption "monitoring-agent/encryption"
 	jwt "monitoring-agent/auth"
-	httpReqRes "monitoring-agent/http"
+	// httpReqRes "monitoring-agent/http"
+	"monitoring-agent/crontab"
 
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron/v3"
 	log "github.com/sirupsen/logrus"
 )
 
-var Cron = cron.New()
-
 func init() {
 	log.SetLevel(log.InfoLevel)
 	log.SetFormatter(&log.TextFormatter{FullTimestamp: true})
-
-	os := command.DetectOS()
 	
-	cron.WithSeconds()
-	// Cron.AddFunc("*/1 * * * *", func() {
-	Cron.AddFunc("@every 0h0m30s", func() {
-		log.Info("[Job 1]Every minute job\n")
-		resource := command.GetResource(os)
-		// log.Info(">>>>", reflect.TypeOf(resource))
-		// log.Info(">>>>", resource)
-		
-		checkOS := command.DetectOS()
-		filePath := ""
-		urlPath := ""
-		switch checkOS {
-		case "windows":
-			filePath = "C:\\temp\\agent-config"
-			urlPath = "/agent/v1/windows/resource/receive"
-		case "darwin":
-			filePath = "/tmp/agent-config"
-			urlPath = "/agent/v1/macos/resource/receive"
-		case "linux":
-			filePath = "/tmp/agent-config"
-			urlPath = "/agent/v1/linux/resource/receive"
-		default:
-			log.Info("This OS is not supported : ", checkOS)
-		}
-
-		data, err := ioutil.ReadFile(filePath)
-		if err != nil {
-			panic(err)
-		}
-
-		key := "16byteSecret!!!!" // must be 16 byte
-		config := encryption.GetDecryptData(key, data)
-		ad := config.(map[string]string)
-		// Declare Header
-		header := make(map[string]string)
-		header["Content-Type"] = "application/json"
-		header["Authorization"] = "bearer "+ ad["JWT"]
-		// Declare Query
-		query := make(map[string]string)
-		query["name"] = ad["NAME"]
-
-		url := ad["MAIN_SERVER_ADDRESS"]+urlPath
-		res := httpReqRes.HttpReq("POST", url, header, query, resource)
-		log.Info("response : ", res)
-	})
+	var checkOS = command.DetectOS()
+	var resource = command.GetResource(checkOS)	
+	crontab.Intialize("@every 0h0m30s", checkOS, resource)
 }
 
 func checkError(err error) {
@@ -175,10 +130,9 @@ func cronStart(c *gin.Context) {
 	log.Info("Create new cron")
 	// Start cron with one scheduled job
 	log.Info("Start cron")
-	Cron.Start()
-	printCronEntries(Cron.Entries())
+	crontab.Start()
 	// time.Sleep(2 * time.Minute)
-	println("cron entity :", Cron.Entries())
+	log.Infof("cron entity : %+v\n", crontab.Entries())
 
 	c.JSON(http.StatusOK, gin.H{"message": "This agent start to work..."})
 }
@@ -192,9 +146,12 @@ func checkCron(c *gin.Context) {
 }
 
 func cronStop(c *gin.Context) {
+	payload := jwt.TokenValidCheck(c.Request)
+	log.Info("payload####",payload)
 	log.Info("Stop cron")
 	c.JSON(http.StatusOK, gin.H{"message": "Stop this agent work..."})
-	Cron.Stop()
+	log.Infof("cron entity : %+v\n", crontab.Entries())
+	crontab.Stop()	
 	// Cron.Remove(1)
 }
 
@@ -202,8 +159,4 @@ func tokenCheck(c *gin.Context) {
 	payload := jwt.TokenValidCheck(c.Request)
 	log.Info("payload####",payload)
 	c.JSON(http.StatusOK, gin.H{"message": "jwt token check..."})
-}
-
-func printCronEntries(cronEntries []cron.Entry) {
-	log.Infof("Cron Info: %+v\n", cronEntries)
 }
