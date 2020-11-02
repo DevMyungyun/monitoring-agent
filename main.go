@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"crypto/aes"
 	"strings"
-	"os"
 	"time"
 
 	"monitoring-agent/command"
@@ -19,7 +18,6 @@ import (
 	"monitoring-agent/crontab"
 
 	"github.com/gin-gonic/gin"
-	"github.com/robfig/cron/v3"
 	log "github.com/sirupsen/logrus"
 )
 
