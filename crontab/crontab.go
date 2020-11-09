@@ -2,6 +2,8 @@ package crontab
 
 import (
 	"io/ioutil"
+	"reflect"
+	"encoding/json"
 
 	encryption "monitoring-agent/encryption"
 	httpReqRes "monitoring-agent/http"
@@ -56,9 +58,21 @@ func Intialize (timeSetting string, checkOS string, resource interface{}) {
 		query := make(map[string]string)
 		query["name"] = ad["NAME"]
 
-		url := ad["MAIN_SERVER_ADDRESS"]+urlPath
-		res := httpReqRes.HttpReq("POST", url, header, query, resource)
+		res := httpReqRes.HttpReq("POST", ad["MAIN_SERVER_ADDRESS"]+urlPath, header, query, resource)
 		log.Info("response : ", res)
+		// log.Info("response type : ", reflect.TypeOf(res))
+		
+		 var resData map[string]string
+		 json.Unmarshal([]byte(res),&resData)
+		 log.Info("res json", resData)
+		 log.Info("res json", resData["code"])
+		 log.Info("res json type", reflect.TypeOf(resData))
+		 // When JWT Token is expired
+		 if resData["code"] == "401" {
+			 log.Info("#### body : ", query)
+			refreshTokenRes := httpReqRes.HttpReq("POST", ad["MAIN_SERVER_ADDRESS"]+"/auth/jwt/refresh/token", nil, query, query)
+			log.Info("refreshToekn : ", refreshTokenRes)
+		 }
 	})
 }
 

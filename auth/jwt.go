@@ -35,10 +35,10 @@ func TokenValidCheck(headers *http.Request) (interface{}){
 		log.Info("This OS is not supported : ", checkOS)
 	}
 
-    data, err := ioutil.ReadFile(path)
-    if err != nil {
-        panic(err)
-    }
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+			panic(err)
+	}
 
 	key := "16byteSecret!!!!" // must be 16 byte
 	config := encryption.GetDecryptData(key, data)

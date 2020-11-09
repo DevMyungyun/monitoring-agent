@@ -21,6 +21,7 @@ func HttpReq(method string, url string, header interface{}, query interface{}, b
 		panic(err)
 	}
 
+	log.Info("request : ",req)
 	q := req.URL.Query()
 	if query != nil {
 		queries := query.(map[string]string)
@@ -39,15 +40,15 @@ func HttpReq(method string, url string, header interface{}, query interface{}, b
 	
 	// Execute Request by Client Object
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	res, err := client.Do(req)
 	if err != nil {
 		panic(err)
 		log.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer res.Body.Close()
 
 	// Output result
-	bytes, _ := ioutil.ReadAll(resp.Body)
+	bytes, _ := ioutil.ReadAll(res.Body)
 	str := string(bytes) 
 	log.Info("response ",str)
 
