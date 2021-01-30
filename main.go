@@ -133,6 +133,9 @@ func cronStart(c *gin.Context) {
 	// time.Sleep(2 * time.Minute)
 	log.Infof("cron entity : %+v\n", crontab.Entries())
 
+	// add git test
+	log.Info("this is git test")
+
 	c.JSON(http.StatusOK, gin.H{"message": "This agent start to work..."})
 }
 
