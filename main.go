@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
 	// "bytes"
-	"encoding/json"
 	"crypto/aes"
+	"encoding/json"
+	"os"
 	"strings"
 	"time"
-	"os"
 
+	jwt "monitoring-agent/auth"
 	"monitoring-agent/command"
 	encryption "monitoring-agent/encryption"
-	jwt "monitoring-agent/auth"
+
 	// httpReqRes "monitoring-agent/http"
 	"monitoring-agent/crontab"
 
@@ -134,7 +136,7 @@ func cronStart(c *gin.Context) {
 	log.Infof("cron entity : %+v\n", crontab.Entries())
 
 	// add git test
-	log.Info("this is git test")
+	log.Info("this is git test change from local pc...")
 
 	c.JSON(http.StatusOK, gin.H{"message": "This agent start to work..."})
 }
